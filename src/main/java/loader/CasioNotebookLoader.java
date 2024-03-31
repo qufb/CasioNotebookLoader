@@ -84,7 +84,9 @@ public class CasioNotebookLoader extends AbstractLibrarySupportLoader {
 			"d5b6677ab4e0d3f84e5769e89e8f3d101f98f848", // cfx9850.bin
 			"1d1aa38205eec7aba3ed6bef7389767e38afe075", // cfx9850b.bin
 			"7cde6074758b5ae474b4eb3ee7396dbfb481ddcf", // r27v802d-34.lsi2
-			"f9a63db3d048da0954cab052690deb01ec384b22"  // d23c8000xgx-c64.lsi5
+			"f9a63db3d048da0954cab052690deb01ec384b22", // d23c8000xgx-c64.lsi5
+			"0c081a62f00d0fbee496a5c9067fb145cb79c8cd", // d23c8000lwgx-c12.lsi5
+			"d967455b20f16d2f9075fed504575596804bec18"  // d23c8000xgx-c07.lsi5
 		);
 		byte[] bytes = provider.readBytes(0, provider.length());
 		byte[] hashBytes;
@@ -159,6 +161,30 @@ public class CasioNotebookLoader extends AbstractLibrarySupportLoader {
 		createSegment(fpa, null, "WORK_RAM", "ram:0040:0000", 0x08000L, true, true, false, true, log);
 		createSegment(fpa, null, "DISP_RAM", "ram:0060:0000", 0x00800L, true, true, false, true, log);
 		createSegment(fpa, null, "EXT_E1",   "ram:00e1:0000", 0x10000L, true, true, false, true, log);
+
+		// ROM entry point
+		Address entry = fpa.toAddr("ram:0020:0000");
+		try {
+			fpa.createLabel(entry, "reset", true);
+		} catch (Exception e) {
+			log.appendException(e);
+		}
+		new DisassembleCommand(entry, null, true).applyTo(program);
+		Instruction ins = fpa.getInstructionAt(entry);
+		if (ins != null && ins.getMnemonicString().equalsIgnoreCase("jmp")) {
+			fpa.createFunction(fpa.toAddr(Long.decode(ins.getDefaultOperandRepresentation(0))), "reset");
+		}
+		fpa.addEntryPoint(entry);
+
+		// Always use language defined labels, regardless of APPLY_LABELS_OPTION_NAME...
+		List<AddressLabelInfo> labels = loadSpec.getLanguageCompilerSpec().getLanguage().getDefaultSymbols();
+		for (AddressLabelInfo info : labels) {
+			try {
+				program.getSymbolTable().createLabel(info.getAddress(), info.getLabel(), SourceType.IMPORTED);
+			} catch (InvalidInputException e) {
+				log.appendException(e);
+			}
+		}
 
 		monitor.setMessage(String.format("%s : Loading done", getName()));
 	}
