@@ -83,10 +83,11 @@ public class CasioNotebookLoader extends AbstractLibrarySupportLoader {
 		Set<String> knownHashes = Set.of(
 			"d5b6677ab4e0d3f84e5769e89e8f3d101f98f848", // cfx9850.bin
 			"1d1aa38205eec7aba3ed6bef7389767e38afe075", // cfx9850b.bin
-			"7cde6074758b5ae474b4eb3ee7396dbfb481ddcf", // r27v802d-34.lsi2
-			"f9a63db3d048da0954cab052690deb01ec384b22", // d23c8000xgx-c64.lsi5
-			"0c081a62f00d0fbee496a5c9067fb145cb79c8cd", // d23c8000lwgx-c12.lsi5
-			"d967455b20f16d2f9075fed504575596804bec18"  // d23c8000xgx-c07.lsi5
+            "f5a5ece8179d5e215433553cab781448692fbb60", // tc531001cf.rom (jd5000)
+			"7cde6074758b5ae474b4eb3ee7396dbfb481ddcf", // r27v802d-34.lsi2 (cfx9850gb)
+			"f9a63db3d048da0954cab052690deb01ec384b22", // d23c8000xgx-c64.lsi5 (jd370)
+			"0c081a62f00d0fbee496a5c9067fb145cb79c8cd", // d23c8000lwgx-c12.lsi5 (jd364)
+			"d967455b20f16d2f9075fed504575596804bec18"  // d23c8000xgx-c07.lsi5 (rx850)
 		);
 		byte[] bytes = provider.readBytes(0, provider.length());
 		byte[] hashBytes;
