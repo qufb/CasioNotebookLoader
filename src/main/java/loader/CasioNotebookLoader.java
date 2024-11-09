@@ -85,6 +85,7 @@ public class CasioNotebookLoader extends AbstractLibrarySupportLoader {
 			"1d1aa38205eec7aba3ed6bef7389767e38afe075", // cfx9850b.bin
 			"7cde6074758b5ae474b4eb3ee7396dbfb481ddcf", // r27v802d-34.lsi2 (cfx9850gb)
             "f5a5ece8179d5e215433553cab781448692fbb60", // tc531001cf.rom (jd5000)
+			"ef199725f04da977cd47293dba8086011f156baf", // d23c8000lwgx-c11.lsi5 (jd363)
 			"0c081a62f00d0fbee496a5c9067fb145cb79c8cd", // d23c8000lwgx-c12.lsi5 (jd364)
 			"0d5610d288ab2474017c05ed54fc816d2e82525f", // d23c8000xgx-c42.lsi5 (jd368)
 			"f9a63db3d048da0954cab052690deb01ec384b22", // d23c8000xgx-c64.lsi5 (jd370)
