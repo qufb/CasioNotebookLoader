@@ -69,69 +69,70 @@ import ghidra.util.task.TaskMonitor;
  */
 public class CasioNotebookLoader extends AbstractLibrarySupportLoader {
 
-	@Override
-	public String getName() {
-		return "Casio Notebook Loader";
-	}
+    @Override
+    public String getName() {
+        return "Casio Notebook Loader";
+    }
 
-	@Override
-	public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
-		List<LoadSpec> loadSpecs = new ArrayList<>();
+    @Override
+    public Collection<LoadSpec> findSupportedLoadSpecs(ByteProvider provider) throws IOException {
+        List<LoadSpec> loadSpecs = new ArrayList<>();
 
-		BinaryReader reader = new BinaryReader(provider, false);
+        BinaryReader reader = new BinaryReader(provider, false);
 
-		Set<String> knownHashes = Set.of(
-			"d5b6677ab4e0d3f84e5769e89e8f3d101f98f848", // cfx9850.bin
-			"1d1aa38205eec7aba3ed6bef7389767e38afe075", // cfx9850b.bin
-			"7cde6074758b5ae474b4eb3ee7396dbfb481ddcf", // r27v802d-34.lsi2 (cfx9850gb)
+        Set<String> knownHashes = Set.of(
+            "d5b6677ab4e0d3f84e5769e89e8f3d101f98f848", // cfx9850.bin
+            "1d1aa38205eec7aba3ed6bef7389767e38afe075", // cfx9850b.bin
+            "7cde6074758b5ae474b4eb3ee7396dbfb481ddcf", // r27v802d-34.lsi2 (cfx9850gb)
             "f5a5ece8179d5e215433553cab781448692fbb60", // tc531001cf.rom (jd5000)
-			"ef199725f04da977cd47293dba8086011f156baf", // d23c8000lwgx-c11.lsi5 (jd363)
-			"0c081a62f00d0fbee496a5c9067fb145cb79c8cd", // d23c8000lwgx-c12.lsi5 (jd364)
-			"0d5610d288ab2474017c05ed54fc816d2e82525f", // d23c8000xgx-c42.lsi5 (jd368)
-			"f9a63db3d048da0954cab052690deb01ec384b22", // d23c8000xgx-c64.lsi5 (jd370)
-			"5f2564ccb6ff7e0e5a21064ca32626f35dc81506", // d23c8000xgx-c77.lsi5 (mk300)
-			"24f8dc15a51a391d4c35cce7332d55f1fa4d8160", // m538032e-48.lsi5 (mk350)
-			"d967455b20f16d2f9075fed504575596804bec18"  // d23c8000xgx-c07.lsi5 (rx850)
-		);
-		byte[] bytes = provider.readBytes(0, provider.length());
-		byte[] hashBytes;
-		try {
-			hashBytes = MessageDigest.getInstance("SHA-1").digest(bytes);
-		} catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e);
-		}
-		String hash;
-		try (Formatter formatter = new Formatter()) {
-			for (byte b : hashBytes) {
-				formatter.format("%02x", b);
-			}
-			hash = formatter.toString();
-		}
-		boolean isLoaded = knownHashes.stream().anyMatch(knownHash -> knownHash.equalsIgnoreCase(hash));
-		if (isLoaded) {
-			loadSpecs.add(new LoadSpec(this, 0, new LanguageCompilerSpecPair("HCD62121:BE:16:default", "default"), true));
-		}
+            "ef199725f04da977cd47293dba8086011f156baf", // d23c8000lwgx-c11.lsi5 (jd363)
+            "0c081a62f00d0fbee496a5c9067fb145cb79c8cd", // d23c8000lwgx-c12.lsi5 (jd364)
+            "0d5610d288ab2474017c05ed54fc816d2e82525f", // d23c8000xgx-c42.lsi5 (jd368)
+            "f9a63db3d048da0954cab052690deb01ec384b22", // d23c8000xgx-c64.lsi5 (jd370)
+            "5f2564ccb6ff7e0e5a21064ca32626f35dc81506", // d23c8000xgx-c77.lsi5 (mk300)
+            "24f8dc15a51a391d4c35cce7332d55f1fa4d8160", // m538032e-48.lsi5 (mk350)
+            "d967455b20f16d2f9075fed504575596804bec18"  // d23c8000xgx-c07.lsi5 (rx850)
+        );
+        byte[] bytes = provider.readBytes(0, provider.length());
+        byte[] hashBytes;
+        try {
+            hashBytes = MessageDigest.getInstance("SHA-1").digest(bytes);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+        String hash;
+        try (Formatter formatter = new Formatter()) {
+            for (byte b : hashBytes) {
+                formatter.format("%02x", b);
+            }
+            hash = formatter.toString();
+        }
+        boolean isLoaded = knownHashes.stream().anyMatch(knownHash -> knownHash.equalsIgnoreCase(hash));
+        if (isLoaded) {
+            loadSpecs.add(new LoadSpec(this, 0, new LanguageCompilerSpecPair("HCD62121:BE:16:default", "default"), true));
+        }
 
-		return loadSpecs;
-	}
+        return loadSpecs;
+    }
 
-	@Override
-	protected void load(ByteProvider provider,
-			LoadSpec loadSpec,
-			List<Option> options,
-			Program program,
-			TaskMonitor monitor,
-			MessageLog log) throws CancelledException, IOException {
-		BinaryReader reader = new BinaryReader(provider, false);
-		FlatProgramAPI fpa = new FlatProgramAPI(program, monitor);
+    @Override
+    protected void load(ByteProvider provider,
+            LoadSpec loadSpec,
+            List<Option> options,
+            Program program,
+            TaskMonitor monitor,
+            MessageLog log) throws CancelledException, IOException {
+        BinaryReader reader = new BinaryReader(provider, false);
+        FlatProgramAPI fpa = new FlatProgramAPI(program, monitor);
 
-		InputStream cpuRomStream = null;
-
-		File cpuRomFile = new File("/tmp/hcd62121.bin");
-		if (cpuRomFile.isFile()) {
-			cpuRomStream = new FileInputStream(cpuRomFile);
-			monitor.setMessage(String.format("Loading CPU ROM @ %s", cpuRomFile));
-		} else {
+        long cpuRomSize = 0x8000L;
+        InputStream cpuRomStream = null;
+        File cpuRomFile = new File("/tmp/hcd62121.bin");
+        if (cpuRomFile.isFile()) {
+            cpuRomStream = new FileInputStream(cpuRomFile);
+            cpuRomSize = Math.max(cpuRomStream.available(), cpuRomSize);
+            monitor.setMessage(String.format("Loading CPU ROM @ %s", cpuRomFile));
+        } else {
             int choice = OptionDialog.showOptionNoCancelDialog(
                 null,
                 "CPU ROM mapping",
@@ -146,154 +147,155 @@ public class CasioNotebookLoader extends AbstractLibrarySupportLoader {
                 File file = chooser.getSelectedFile(true);
                 if (file != null) {
                     cpuRomStream = new FileInputStream(file);
+                    cpuRomSize = Math.max(cpuRomStream.available(), cpuRomSize);
                 }
             }
         }
 
-		InputStream romStream = provider.getInputStream(0);
-		long bank_size = 0x10000L;
-		createSegment(fpa, cpuRomStream, "CPU_ROM",   "ram:0000:0000", 0x08000L, true, false, true, true, log);
-		createSegment(fpa, null,         "VIDEO_RAM", "ram:0008:0000", 0x00800L, true, true, false, true, log);
-		createSegment(fpa, null,         "EXT_10",    "ram:0010:0000", 0x10000L, true, true, false, true, log);
-		createSegment(fpa, null,         "EXT_11",    "ram:0011:0000", 0x10000L, true, true, false, true, log);
-		for (int i = 0; i < 0x10; i++) {
-			createSegment(fpa, provider.getInputStream(Math.min(romStream.available(), bank_size * i)),
-					"ROM_" + String.format("%02d", i), String.format("ram:00%02x:0000", 0x20 + i), bank_size, true, false, true, false, log);
-			if (romStream.available() <= bank_size * (i + 1)) {
-				break;
-			}
-		}
-		createSegment(fpa, null, "WORK_RAM", "ram:0040:0000", 0x08000L, true, true, false, true, log);
-		createSegment(fpa, null, "DISP_RAM", "ram:0060:0000", 0x00800L, true, true, false, true, log);
-		createSegment(fpa, null, "EXT_E1",   "ram:00e1:0000", 0x10000L, true, true, false, true, log);
+        InputStream romStream = provider.getInputStream(0);
+        long bank_size = 0x10000L;
+        createSegment(fpa, cpuRomStream, "CPU_ROM",   "ram:0000:0000", cpuRomSize, true, false, true, true, log);
+        createSegment(fpa, null,         "VIDEO_RAM", "ram:0008:0000", 0x00800L, true, true, false, true, log);
+        createSegment(fpa, null,         "EXT_10",    "ram:0010:0000", 0x10000L, true, true, false, true, log);
+        createSegment(fpa, null,         "EXT_11",    "ram:0011:0000", 0x10000L, true, true, false, true, log);
+        for (int i = 0; i < 0x10; i++) {
+            createSegment(fpa, provider.getInputStream(Math.min(romStream.available(), bank_size * i)),
+                    "ROM_" + String.format("%02d", i), String.format("ram:00%02x:0000", 0x20 + i), bank_size, true, false, true, false, log);
+            if (romStream.available() <= bank_size * (i + 1)) {
+                break;
+            }
+        }
+        createSegment(fpa, null, "WORK_RAM", "ram:0040:0000", 0x08000L, true, true, false, true, log);
+        createSegment(fpa, null, "DISP_RAM", "ram:0060:0000", 0x00800L, true, true, false, true, log);
+        createSegment(fpa, null, "EXT_E1",   "ram:00e1:0000", 0x10000L, true, true, false, true, log);
 
-		// ROM entry point
-		Address entry = fpa.toAddr("ram:0020:0000");
-		try {
-			fpa.createLabel(entry, "reset", true);
-		} catch (Exception e) {
-			log.appendException(e);
-		}
-		new DisassembleCommand(entry, null, true).applyTo(program);
-		Instruction ins = fpa.getInstructionAt(entry);
-		if (ins != null && ins.getMnemonicString().equalsIgnoreCase("jmp")) {
-			fpa.createFunction(fpa.toAddr(Long.decode(ins.getDefaultOperandRepresentation(0))), "reset");
-		}
-		fpa.addEntryPoint(entry);
+        // ROM entry point
+        Address entry = fpa.toAddr("ram:0020:0000");
+        try {
+            fpa.createLabel(entry, "reset", true);
+        } catch (Exception e) {
+            log.appendException(e);
+        }
+        new DisassembleCommand(entry, null, true).applyTo(program);
+        Instruction ins = fpa.getInstructionAt(entry);
+        if (ins != null && ins.getMnemonicString().equalsIgnoreCase("jmp")) {
+            fpa.createFunction(fpa.toAddr(Long.decode(ins.getDefaultOperandRepresentation(0))), "reset");
+        }
+        fpa.addEntryPoint(entry);
 
-		// Always use language defined labels, regardless of APPLY_LABELS_OPTION_NAME...
-		List<AddressLabelInfo> labels = loadSpec.getLanguageCompilerSpec().getLanguage().getDefaultSymbols();
-		for (AddressLabelInfo info : labels) {
-			try {
-				program.getSymbolTable().createLabel(info.getAddress(), info.getLabel(), SourceType.IMPORTED);
-			} catch (InvalidInputException e) {
-				log.appendException(e);
-			}
-		}
+        // Always use language defined labels, regardless of APPLY_LABELS_OPTION_NAME...
+        List<AddressLabelInfo> labels = loadSpec.getLanguageCompilerSpec().getLanguage().getDefaultSymbols();
+        for (AddressLabelInfo info : labels) {
+            try {
+                program.getSymbolTable().createLabel(info.getAddress(), info.getLabel(), SourceType.IMPORTED);
+            } catch (InvalidInputException e) {
+                log.appendException(e);
+            }
+        }
 
-		monitor.setMessage(String.format("%s : Loading done", getName()));
-	}
+        monitor.setMessage(String.format("%s : Loading done", getName()));
+    }
 
-	private void createSegment(FlatProgramAPI fpa,
-			InputStream stream,
-			String name,
-			String address,
-			long size,
-			boolean read,
-			boolean write,
-			boolean execute,
-			boolean volatil,
-			MessageLog log) {
-		MemoryBlock block;
-		try {
-			block = fpa.createMemoryBlock(name, fpa.getAddressFactory().getAddress(address), stream, size, false);
-			block.setRead(read);
-			block.setWrite(write);
-			block.setExecute(execute);
-			block.setVolatile(volatil);
-		} catch (Exception e) {
-			log.appendException(e);
-		}
-	}
+    private void createSegment(FlatProgramAPI fpa,
+            InputStream stream,
+            String name,
+            String address,
+            long size,
+            boolean read,
+            boolean write,
+            boolean execute,
+            boolean volatil,
+            MessageLog log) {
+        MemoryBlock block;
+        try {
+            block = fpa.createMemoryBlock(name, fpa.getAddressFactory().getAddress(address), stream, size, false);
+            block.setRead(read);
+            block.setWrite(write);
+            block.setExecute(execute);
+            block.setVolatile(volatil);
+        } catch (Exception e) {
+            log.appendException(e);
+        }
+    }
 
-	private void createNamedData(FlatProgramAPI fpa,
-			Program program,
-			String address,
-			String name,
-			DataType type,
-			MessageLog log) {
-		try {
-			if (type.equals(ByteDataType.dataType)) {
-				fpa.createByte(fpa.toAddr(address));
-			} else if (type.equals(WordDataType.dataType)) {
-				fpa.createWord(fpa.toAddr(address));
-			} else if (type.equals(DWordDataType.dataType)) {
-				fpa.createDWord(fpa.toAddr(address));
-			}
-			program.getSymbolTable().createLabel(fpa.getAddressFactory().getAddress(address), name, SourceType.IMPORTED);
-		} catch (Exception e) {
-			log.appendException(e);
-		}
-	}
+    private void createNamedData(FlatProgramAPI fpa,
+            Program program,
+            String address,
+            String name,
+            DataType type,
+            MessageLog log) {
+        try {
+            if (type.equals(ByteDataType.dataType)) {
+                fpa.createByte(fpa.toAddr(address));
+            } else if (type.equals(WordDataType.dataType)) {
+                fpa.createWord(fpa.toAddr(address));
+            } else if (type.equals(DWordDataType.dataType)) {
+                fpa.createDWord(fpa.toAddr(address));
+            }
+            program.getSymbolTable().createLabel(fpa.getAddressFactory().getAddress(address), name, SourceType.IMPORTED);
+        } catch (Exception e) {
+            log.appendException(e);
+        }
+    }
 
-	private void createNamedArray(FlatProgramAPI fpa,
-			Program program,
-			long address,
-			String name,
-			int numElements,
-			DataType type,
-			MessageLog log) {
-		try {
-			CreateArrayCmd arrayCmd = new CreateArrayCmd(fpa.toAddr(address), numElements, type, type.getLength());
-			arrayCmd.applyTo(program);
-			program.getSymbolTable().createLabel(fpa.toAddr(address), name, SourceType.IMPORTED);
-		} catch (InvalidInputException e) {
-			log.appendException(e);
-		}
-	}
+    private void createNamedArray(FlatProgramAPI fpa,
+            Program program,
+            long address,
+            String name,
+            int numElements,
+            DataType type,
+            MessageLog log) {
+        try {
+            CreateArrayCmd arrayCmd = new CreateArrayCmd(fpa.toAddr(address), numElements, type, type.getLength());
+            arrayCmd.applyTo(program);
+            program.getSymbolTable().createLabel(fpa.toAddr(address), name, SourceType.IMPORTED);
+        } catch (InvalidInputException e) {
+            log.appendException(e);
+        }
+    }
 
-	private void createMirrorSegment(Memory memory,
-			FlatProgramAPI fpa,
-			String name,
-			long src,
-			long dst,
-			long size,
-			MessageLog log) {
-		MemoryBlock block;
-		Address baseAddress = fpa.toAddr(src);
-		try {
-			block = memory.createByteMappedBlock(name, fpa.toAddr(dst), baseAddress, size, false);
+    private void createMirrorSegment(Memory memory,
+            FlatProgramAPI fpa,
+            String name,
+            long src,
+            long dst,
+            long size,
+            MessageLog log) {
+        MemoryBlock block;
+        Address baseAddress = fpa.toAddr(src);
+        try {
+            block = memory.createByteMappedBlock(name, fpa.toAddr(dst), baseAddress, size, false);
 
-			MemoryBlock baseBlock = memory.getBlock(baseAddress);
-			block.setRead(baseBlock.isRead());
-			block.setWrite(baseBlock.isWrite());
-			block.setExecute(baseBlock.isExecute());
-			block.setVolatile(baseBlock.isVolatile());
-		} catch (Exception e) {
-			log.appendException(e);
-		}
-	}
+            MemoryBlock baseBlock = memory.getBlock(baseAddress);
+            block.setRead(baseBlock.isRead());
+            block.setWrite(baseBlock.isWrite());
+            block.setExecute(baseBlock.isExecute());
+            block.setVolatile(baseBlock.isVolatile());
+        } catch (Exception e) {
+            log.appendException(e);
+        }
+    }
 
-	private void createMirrorSegment(Memory memory,
-			FlatProgramAPI fpa,
-			String name,
-			long src,
-			long dst,
-			long size,
-			int rwx,
-			MessageLog log) {
-		MemoryBlock block;
-		Address baseAddress = fpa.toAddr(src);
-		try {
-			block = memory.createByteMappedBlock(name, fpa.toAddr(dst), baseAddress, size, false);
+    private void createMirrorSegment(Memory memory,
+            FlatProgramAPI fpa,
+            String name,
+            long src,
+            long dst,
+            long size,
+            int rwx,
+            MessageLog log) {
+        MemoryBlock block;
+        Address baseAddress = fpa.toAddr(src);
+        try {
+            block = memory.createByteMappedBlock(name, fpa.toAddr(dst), baseAddress, size, false);
 
-			MemoryBlock baseBlock = memory.getBlock(baseAddress);
-			block.setRead((rwx & 0b100) != 0);
-			block.setWrite((rwx & 0b010) != 0);
-			block.setExecute((rwx & 0b001) != 0);
-			block.setVolatile(baseBlock.isVolatile());
-		} catch (Exception e) {
-			log.appendException(e);
-		}
-	}
+            MemoryBlock baseBlock = memory.getBlock(baseAddress);
+            block.setRead((rwx & 0b100) != 0);
+            block.setWrite((rwx & 0b010) != 0);
+            block.setExecute((rwx & 0b001) != 0);
+            block.setVolatile(baseBlock.isVolatile());
+        } catch (Exception e) {
+            log.appendException(e);
+        }
+    }
 }
